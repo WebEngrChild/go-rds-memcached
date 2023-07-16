@@ -22,6 +22,7 @@ go.work
 
 # As you like..
 .idea/
+.idea
 .DS_Store/
 .env
 *.log
