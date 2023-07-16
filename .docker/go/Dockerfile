@@ -38,8 +38,6 @@ RUN apk --no-cache add git
 WORKDIR /app
 COPY ./app/ .
 
-RUN go install github.com/go-delve/delve/cmd/dlv@v1.20.1 && \
-    go install github.com/pressly/goose/v3/cmd/goose@v3.7.0 && \
-    go install github.com/golang/mock/mockgen@v1.6.0 && \
-    go install github.com/cosmtrek/air@v1.27.3  && \
-    go install github.com/99designs/gqlgen@v0.17.24
+# コンテナ内で利用したいGo製のツールをインストールする
+#RUN go install github.com/go-delve/delve/cmd/dlv@v1.20.1 && \
+#    go install github.com/99designs/gqlgen@v0.17.24
