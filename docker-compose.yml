@@ -1,0 +1,34 @@
+version: "3.8"
+services:
+  app:
+    container_name: app
+    build:
+      context: .
+      target: dev
+      dockerfile: .docker/go/Dockerfile
+    tty: true
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./:/app
+    depends_on:
+      - mysql
+    networks:
+      sample_go_network:
+
+  mysql:
+    container_name: mysql
+    build: .docker/mysql/
+    volumes:
+      - .docker/mysql/init:/docker-entrypoint-initdb.d
+      - .docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+      - .docker/mysql/log:/var/log/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${API_DB_PASS}
+    ports:
+      - ${API_DB_PORT}:3306
+    networks:
+      sample_go_network:
+
+networks:
+  sample_go_network:
