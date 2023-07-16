@@ -1,15 +1,17 @@
-FROM golang:1.19-alpine as builder
+FROM golang:1.20-alpine as builder
 
 RUN apk --no-cache add gcc musl-dev
 
 WORKDIR /app
 
-COPY go.mod go.sum ./
+# キャッシュを利用するため先に/go/pkg/modにインストール
+COPY ./app/go.mod ./app/go.sum ./
 RUN go mod download
 
-COPY . .
+COPY ./app/ .
 
-RUN go build -trimpath -ldflags "-w -s" -o ./main cmd/main.go
+# パスとデバッグ情報を削除してバイナリを軽量化
+RUN go build -trimpath -ldflags "-w -s" -o ./main ./main.go
 
 FROM alpine:3.17 as runner
 
@@ -26,7 +28,7 @@ COPY --from=builder /app/main .
 
 CMD ["./main"]
 
-FROM golang:1.19-alpine3.17 as dev
+FROM golang:1.20-alpine3.17 as dev
 
 ENV CGO_ENABLED 0
 ENV GO111MODULE auto
@@ -34,7 +36,7 @@ ENV GO111MODULE auto
 RUN apk --no-cache add git
 
 WORKDIR /app
-COPY . /app
+COPY ./app/ .
 
 RUN go install github.com/go-delve/delve/cmd/dlv@v1.20.1 && \
     go install github.com/pressly/goose/v3/cmd/goose@v3.7.0 && \
