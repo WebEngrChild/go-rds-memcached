@@ -18,7 +18,7 @@ type Customer struct {
 }
 
 func main() {
-	// 環境変数の呼び出し
+	// 環境変数の読み込み
 	dbUser := os.Getenv("DB_USER")
 	dbPass := os.Getenv("DB_PASS")
 	dbHost := os.Getenv("DB_HOST")
@@ -65,8 +65,8 @@ func main() {
 		// キャッシュがない場合
 		if err == memcache.ErrCacheMiss {
 			var result Customer
-			// DBから取得
-			err = db.QueryRow("SELECT id, value FROM customers WHERE id = ?", paramId).Scan(&result.ID, &result.Value)
+			// 5秒遅延させるクエリの実行
+			err := db.QueryRow("SELECT id, value, SLEEP(5) FROM customers WHERE id = ?", paramId).Scan(&result.ID, &result.Value, &result.SleepResult)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
