@@ -11,6 +11,7 @@ services:
       - "8080:8080"
     depends_on:
       - mysql
+      - memcached
     networks:
       sample_go_network:
 
@@ -24,7 +25,17 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=${DB_PASS}
     ports:
-      - ${DB_PORT}:3306
+      - "3306:3306"
+    networks:
+      sample_go_network:
+
+  memcached:
+    container_name: memcached
+    build:
+      context: .
+      dockerfile: .docker/memcached/Dockerfile
+    ports:
+      - "11211:11211"
     networks:
       sample_go_network:
 
