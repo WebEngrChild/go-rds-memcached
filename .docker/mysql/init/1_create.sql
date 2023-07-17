@@ -1,2 +1,8 @@
 CREATE DATABASE golang;
-use golang;
+USE golang;
+
+CREATE TABLE Records
+(
+    ID    INT PRIMARY KEY,
+    Value VARCHAR(255)
+);
