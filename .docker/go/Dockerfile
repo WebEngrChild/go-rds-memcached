@@ -37,4 +37,3 @@ RUN apk --no-cache add git
 
 WORKDIR /app
 COPY ./app/ .
-COPY ./.env .env
