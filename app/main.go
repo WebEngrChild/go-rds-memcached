@@ -11,8 +11,9 @@ import (
 )
 
 type Customer struct {
-	ID    int    `json:"id"`
-	Value string `json:"value"`
+	ID          int    `json:"id"`
+	Value       string `json:"value"`
+	SleepResult int    `json:"sleepResult"`
 }
 
 func main() {
@@ -31,7 +32,7 @@ func main() {
 	r.GET("/db", func(c *gin.Context) {
 		var result Customer
 		// 3秒遅延させるロングランニングクエリの実行
-		err := db.QueryRow("SELECT *, SLEEP(5) FROM table WHERE id = ?", 1).Scan(&result.ID, &result.Value)
+		err := db.QueryRow("SELECT id, value, SLEEP(5) FROM customers WHERE id = ?", 1).Scan(&result.ID, &result.Value, &result.SleepResult)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -48,7 +49,7 @@ func main() {
 		if err == memcache.ErrCacheMiss {
 			var result Customer
 			// DBから取得
-			err = db.QueryRow("SELECT * FROM table WHERE id = ?", 1).Scan(&result.ID, &result.Value)
+			err = db.QueryRow("SELECT id, value FROM customers WHERE id = ?", 1).Scan(&result.ID, &result.Value)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
