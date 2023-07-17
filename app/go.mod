@@ -6,6 +6,7 @@ require (
 	github.com/bradfitz/gomemcache v0.0.0-20230611145640-acc696258285
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-sql-driver/mysql v1.7.1
+	github.com/joho/godotenv v1.5.1
 )
 
 require (

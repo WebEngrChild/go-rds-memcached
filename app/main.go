@@ -6,6 +6,7 @@ import (
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
 	"net/http"
 	"os"
 )
@@ -17,7 +18,17 @@ type Customer struct {
 }
 
 func main() {
-	db, err := sql.Open("mysql", "user:password@tcp(mysql:3306)/golang")
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
+	dbUser := os.Getenv("DB_USER")
+	dbPass := os.Getenv("DB_PASS")
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbName := os.Getenv("DB_NAME")
+
+	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPass, dbHost, dbPort, dbName))
 	if err != nil {
 		panic(err)
 	}

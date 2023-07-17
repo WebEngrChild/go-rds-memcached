@@ -24,9 +24,9 @@ services:
       - .docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
       - .docker/mysql/log:/var/log/mysql
     environment:
-      - MYSQL_ROOT_PASSWORD=${API_DB_PASS}
+      - MYSQL_ROOT_PASSWORD=${DB_PASS}
     ports:
-      - ${API_DB_PORT}:3306
+      - ${DB_PORT}:3306
     networks:
       sample_go_network:
 
