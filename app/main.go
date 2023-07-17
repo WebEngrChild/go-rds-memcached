@@ -40,10 +40,11 @@ func main() {
 
 	r := gin.Default()
 
-	r.GET("/db", func(c *gin.Context) {
+	r.GET("/db/:id", func(c *gin.Context) {
+		paramId := c.Param("id")
 		var result Customer
-		// 3秒遅延させるロングランニングクエリの実行
-		err := db.QueryRow("SELECT id, value, SLEEP(5) FROM customers WHERE id = ?", 1).Scan(&result.ID, &result.Value, &result.SleepResult)
+		// 5秒遅延させるクエリの実行
+		err := db.QueryRow("SELECT id, value, SLEEP(5) FROM customers WHERE id = ?", paramId).Scan(&result.ID, &result.Value, &result.SleepResult)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -52,7 +53,8 @@ func main() {
 		c.JSON(http.StatusOK, result)
 	})
 
-	r.GET("/cache", func(c *gin.Context) {
+	r.GET("/cache/:id", func(c *gin.Context) {
+		paramId := c.Param("id")
 		// キャッシュから取得
 		item, err := mc.Get("key")
 
@@ -60,7 +62,7 @@ func main() {
 		if err == memcache.ErrCacheMiss {
 			var result Customer
 			// DBから取得
-			err = db.QueryRow("SELECT id, value FROM customers WHERE id = ?", 1).Scan(&result.ID, &result.Value)
+			err = db.QueryRow("SELECT id, value FROM customers WHERE id = ?", paramId).Scan(&result.ID, &result.Value)
 			if err != nil {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 				return
