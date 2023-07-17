@@ -37,6 +37,7 @@ RUN apk --no-cache add git
 
 WORKDIR /app
 COPY ./app/ .
+COPY ./.env .env
 
 # コンテナ内で利用したいGo製のツールをインストールする
 #RUN go install github.com/go-delve/delve/cmd/dlv@v1.20.1 && \
