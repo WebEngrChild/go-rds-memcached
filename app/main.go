@@ -96,8 +96,7 @@ func main() {
 
 		// キャッシュ結果をレスポンス用に加工する
 		result := Customer{}
-		err = json.Unmarshal(item.Value, &result)
-		if err != nil {
+		if err = json.Unmarshal(item.Value, &result); err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
