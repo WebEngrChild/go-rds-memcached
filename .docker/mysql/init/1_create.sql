@@ -1,8 +1,8 @@
 CREATE DATABASE golang;
 USE golang;
 
-CREATE TABLE Records
+CREATE TABLE customers
 (
-    ID    INT PRIMARY KEY,
-    Value VARCHAR(255)
+    id    INT PRIMARY KEY,
+    value VARCHAR(255)
 );

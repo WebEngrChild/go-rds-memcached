@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-type Record struct {
+type Customer struct {
 	ID    int    `json:"id"`
 	Value string `json:"value"`
 }
@@ -29,7 +29,7 @@ func main() {
 	r := gin.Default()
 
 	r.GET("/db", func(c *gin.Context) {
-		var result Record
+		var result Customer
 		// 3秒遅延させるロングランニングクエリの実行
 		err := db.QueryRow("SELECT *, SLEEP(5) FROM table WHERE id = ?", 1).Scan(&result.ID, &result.Value)
 		if err != nil {
@@ -46,7 +46,7 @@ func main() {
 
 		// キャッシュがない場合
 		if err == memcache.ErrCacheMiss {
-			var result Record
+			var result Customer
 			// DBから取得
 			err = db.QueryRow("SELECT * FROM table WHERE id = ?", 1).Scan(&result.ID, &result.Value)
 			if err != nil {
@@ -72,7 +72,7 @@ func main() {
 		}
 
 		// キャッシュ結果をレスポンス用に加工する
-		result := Record{}
+		result := Customer{}
 		_, _ = fmt.Sscanf(string(item.Value), "%d:%s", &result.ID, &result.Value)
 		c.JSON(http.StatusOK, result)
 	})
