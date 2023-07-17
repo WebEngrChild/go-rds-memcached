@@ -17,7 +17,7 @@ type Customer struct {
 }
 
 func main() {
-	db, err := sql.Open("mysql", "user:password@tcp(localhost:3306)/dbname")
+	db, err := sql.Open("mysql", "user:password@tcp(mysql:3306)/golang")
 	if err != nil {
 		panic(err)
 	}
