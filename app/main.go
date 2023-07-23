@@ -46,6 +46,9 @@ func main() {
 
 	// Ginでルーティング
 	r := gin.Default()
+	r.GET("/", func(c *gin.Context) {
+		c.String(http.StatusOK, "OK")
+	})
 	r.GET("/db/:id", func(c *gin.Context) {
 		paramId := c.Param("id")
 		var result Customer
