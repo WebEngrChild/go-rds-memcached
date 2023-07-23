@@ -16,7 +16,7 @@ RUN go build -trimpath -ldflags "-w -s" -o ./main ./main.go
 FROM alpine:3.17 as runner
 
 RUN apk update && \
-    apk add --no-cache shadow && \
+    apk add --no-cache shadow curl && \
     useradd -m appuser && \
     rm -f /usr/bin/gpasswd /usr/bin/passwd /usr/bin/chfn /sbin/unix_chkpwd /usr/bin/expiry /usr/bin/chage /usr/bin/chsh && \
     rm -rf /var/cache/apk/*
