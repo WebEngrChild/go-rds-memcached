@@ -2,13 +2,42 @@
 
 ## Dev
 ```shell
-$ docker compose up -d
-$ docker compose exec app go run main.go
+docker compose up -d
+docker compose exec app go run main.go
 ```
 
-## Prod
+## Build for Prod
 ```shell:
-$ docker build --no-cache --target runner -t go-dev-repo --platform linux/amd64 -f ./.docker/go/Dockerfile .
+# ECR作成
+aws ecr create-repository --repository-name go-dev-repo
+
+# イメージビルド
+docker build --no-cache --target runner -t go-dev-repo --platform linux/amd64 -f ./.docker/go/Dockerfile .
+```
+
+## Terraform Command
+
+```shell
+# コンテナを立ち上げる
+docker run \
+  -v ~/.aws:/root/.aws \
+  -v $(pwd):/terraform \
+  -w /terraform \
+  -it \
+  --entrypoint=ash \
+  hashicorp/terraform:1.5
+
+# 差分検出
+terraform plan
+
+# コードを適用する
+terraform apply -auto-approve
+
+# フォーマット
+terraform fmt -recursive
+
+# 削除
+terraform destroy
 ```
 
 # Apache Bench
