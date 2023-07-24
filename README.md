@@ -27,6 +27,9 @@ docker run \
   --entrypoint=ash \
   hashicorp/terraform:1.5
 
+# 初期化
+terraform init
+
 # 差分検出
 terraform plan
 
