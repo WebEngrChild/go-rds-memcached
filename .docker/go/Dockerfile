@@ -26,6 +26,8 @@ USER appuser
 WORKDIR /app
 COPY --from=builder /app/main .
 
+RUN touch .env && chown appuser:appuser .env
+
 CMD ["./main"]
 
 FROM golang:1.20-alpine3.17 as dev

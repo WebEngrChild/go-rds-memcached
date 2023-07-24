@@ -7,6 +7,7 @@ import (
 	"github.com/bradfitz/gomemcache/memcache"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
 	"net/http"
 	"os"
 )
@@ -19,6 +20,11 @@ type Customer struct {
 
 func main() {
 	// 環境変数の読み込み
+	err := godotenv.Load()
+	if err != nil {
+		panic("Error loading .env file")
+	}
+
 	dbUser := os.Getenv("DB_USER")
 	dbPass := os.Getenv("DB_PASS")
 	dbHost := os.Getenv("DB_HOST")
