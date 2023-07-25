@@ -5,8 +5,16 @@
 docker compose up -d
 docker compose exec app go run main.go
 ```
+### Apache Bench
 
-## Build for Prod
+```shell
+ab -n 10 -c 10 http://localhost:8080/db/1
+ab -n 10 -c 10 http://localhost:8080/cache/1
+```
+
+## AWS
+
+### ECR
 ```shell:
 # ECR作成
 aws ecr create-repository --repository-name go-dev-repo
@@ -15,7 +23,16 @@ aws ecr create-repository --repository-name go-dev-repo
 docker build --no-cache --target runner -t go-dev-repo --platform linux/amd64 -f ./.docker/go/Dockerfile .
 ```
 
-## Terraform Command
+### Systems Manager Parameter
+
+```shell
+aws ssm put-parameter \
+    --name "/env" \
+    --value "init" \
+    --type SecureString
+```
+
+### Terraform
 
 ```shell
 # コンテナを立ち上げる
@@ -41,11 +58,4 @@ terraform fmt -recursive
 
 # 削除
 terraform destroy
-```
-
-# Apache Bench
-
-```shell
-$ ab -n 10 -c 10 http://localhost:8080/db/1
-$ ab -n 10 -c 10 http://localhost:8080/cache/1
 ```
