@@ -81,7 +81,11 @@ docker run --name mysql-client --rm -it mysql:8.0 /bin/bash
 
 # MySQLクライアントで接続
 mysql -h host.docker.internal -P 3306 -u admin -p
+
+# パスワード入力
 Enter password: <.tfstateのrandom_string.db_password.resultを入力>
+
+# 初期クエリ
 mysql> <1_create.sqlの内容を転記>
 ```
 
