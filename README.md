@@ -59,3 +59,26 @@ terraform fmt -recursive
 # 削除
 terraform destroy
 ```
+
+### Systems Manager Port fording
+
+```shell
+# セッション開始
+aws ssm start-session \
+  --target "i-059a688a8e96113be" \
+  --document-name AWS-StartPortForwardingSessionToRemoteHost \
+  --parameters \
+'{
+  "host": ["handson.cigajaizwgcm.ap-northeast-1.rds.amazonaws.com"],
+  "portNumber": ["3306"],
+  "localPortNumber":["3306"]
+}'
+```
+
+```shell
+# Docker起動
+docker run --name mysql-client --rm -it mysql:8.0 /bin/bash
+
+# MySQLクライアントで接続
+mysql -h host.docker.internal -P 3306 -u admin -p
+```
