@@ -78,7 +78,9 @@ aws ssm start-session \
 ```shell
 # Docker起動
 docker run --name mysql-client --rm -it mysql:8.0 /bin/bash
+docker cp /.docker/mysql/init/1_create.sql mysql-client:/1_create.sql
 
 # MySQLクライアントで接続
 mysql -h host.docker.internal -P 3306 -u admin -p
+source /1_create.sql;
 ```
