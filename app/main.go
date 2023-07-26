@@ -22,7 +22,7 @@ func main() {
 	// 環境変数の読み込み
 	err := godotenv.Load()
 	if err != nil {
-		panic("Error loading .env file")
+		fmt.Printf("Error loading .env file: %v\n", err)
 	}
 
 	dbUser := os.Getenv("DB_USER")
@@ -36,7 +36,7 @@ func main() {
 	// MySQLへ接続
 	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPass, dbHost, dbPort, dbName))
 	if err != nil {
-		panic(err)
+		fmt.Printf("Error mysql connect: %v\n", err)
 	}
 	defer func(db *sql.DB) {
 		_ = db.Close()
@@ -44,7 +44,7 @@ func main() {
 
 	// Confirm the connection to the database
 	if err = db.Ping(); err != nil {
-		panic(err)
+		fmt.Printf("Error pinging database: %v\n", err)
 	}
 
 	// Memcachedへ接続
@@ -112,5 +112,8 @@ func main() {
 		c.JSON(http.StatusOK, result)
 	})
 
-	_ = r.Run(":8080")
+	err = r.Run(":8080")
+	if err != nil {
+		fmt.Printf("Error start server: %v\n", err)
+	}
 }

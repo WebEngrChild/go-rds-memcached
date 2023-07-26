@@ -65,11 +65,11 @@ terraform destroy
 ```shell
 # セッション開始
 aws ssm start-session \
-  --target "i-059a688a8e96113be" \
+  --target "<.tfstateのaws_instanceのidを転記>" \
   --document-name AWS-StartPortForwardingSessionToRemoteHost \
   --parameters \
 '{
-  "host": ["handson.cigajaizwgcm.ap-northeast-1.rds.amazonaws.com"],
+  "host": ["<.tfstateのaws_db_instanceのaddressを転記>"],
   "portNumber": ["3306"],
   "localPortNumber":["3306"]
 }'
@@ -81,6 +81,13 @@ docker run --name mysql-client --rm -it mysql:8.0 /bin/bash
 
 # MySQLクライアントで接続
 mysql -h host.docker.internal -P 3306 -u admin -p
-Enter password: <random_string.db_password.resultを入力>
+Enter password: <.tfstateのrandom_string.db_password.resultを入力>
 mysql> <1_create.sqlの内容を転記>
+```
+
+### Systems Manager Parameterに環境変数を格納
+
+```shell
+DB_PASS=<.tfstateのrandom_string.db_password.resultを入力>
+DB_HOST=<.tfstateのaws_db_instanceのaddressを転記>
 ```
