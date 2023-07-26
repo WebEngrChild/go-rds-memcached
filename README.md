@@ -1,20 +1,20 @@
 # Getting Started
 
-## Dev
+## Dev編
 ```shell
 docker compose up -d
 docker compose exec app go run main.go
 ```
-### Apache Bench
+### Apache Benchを使った検証
 
 ```shell
 ab -n 10 -c 10 http://localhost:8080/db/1
 ab -n 10 -c 10 http://localhost:8080/cache/1
 ```
 
-## AWS
+## AWS編
 
-### ECR
+### ECR構築
 ```shell:
 # ECR作成
 aws ecr create-repository --repository-name go-dev-repo
@@ -23,7 +23,7 @@ aws ecr create-repository --repository-name go-dev-repo
 docker build --no-cache --target runner -t go-dev-repo --platform linux/amd64 -f ./.docker/go/Dockerfile .
 ```
 
-### Systems Manager Parameter
+### Systems Manager Parameterの初期値設定
 
 ```shell
 aws ssm put-parameter \
@@ -32,7 +32,7 @@ aws ssm put-parameter \
     --type SecureString
 ```
 
-### Terraform
+### Terraformでリソース構築
 
 ```shell
 # コンテナを立ち上げる
@@ -60,7 +60,7 @@ terraform fmt -recursive
 terraform destroy
 ```
 
-### Systems Manager Port fording
+### Systems Manager Port fordingでRDSに接続
 
 ```shell
 # セッション開始
