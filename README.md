@@ -15,7 +15,8 @@ ab -n 10 -c 10 http://localhost:8080/cache/1
 ## AWS編
 
 ### ECR構築
-```shell:
+
+```shell
 # ECR作成
 aws ecr create-repository --repository-name go-dev-repo
 
