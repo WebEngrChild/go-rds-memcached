@@ -30,8 +30,8 @@ func main() {
 	dbHost := os.Getenv("DB_HOST")
 	dbPort := os.Getenv("DB_PORT")
 	dbName := os.Getenv("DB_NAME")
-	cacheHost := os.Getenv("CACHE_HOST")
-	cachePort := os.Getenv("CACHE_PORT")
+	cacheHost1 := os.Getenv("CACHE_HOST1")
+	cacheHost2 := os.Getenv("CACHE_HOST2")
 
 	// MySQLへ接続
 	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", dbUser, dbPass, dbHost, dbPort, dbName))
@@ -48,7 +48,7 @@ func main() {
 	}
 
 	// Memcachedへ接続
-	mc := memcache.New(fmt.Sprintf("%s:%s", cacheHost, cachePort))
+	mc := memcache.New(cacheHost1, cacheHost2)
 
 	// Ginでルーティング
 	r := gin.Default()

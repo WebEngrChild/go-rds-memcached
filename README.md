@@ -21,6 +21,12 @@ aws ecr create-repository --repository-name go-dev-repo
 
 # イメージビルド
 docker build --no-cache --target runner -t go-dev-repo --platform linux/amd64 -f ./.docker/go/Dockerfile .
+
+# タグ付け
+docker tag go-dev-repo:latest <account_id>.dkr.ecr.ap-northeast-1.amazonaws.com/go-dev-repo:latest
+
+# タグ付け
+docker push <account_id>.dkr.ecr.ap-northeast-1.amazonaws.com/go-dev-repo:latest
 ```
 
 ### Systems Manager Parameterの初期値設定
@@ -86,7 +92,7 @@ mysql -h host.docker.internal -P 3306 -u admin -p
 Enter password: <.tfstateのrandom_string.db_password.resultを入力>
 
 # 初期クエリ
-mysql> <1_create.sqlの内容を転記>
+mysql> <.docker/mysql/init/1_create.sqlの内容を転記>
 ```
 
 ### Systems Manager Parameterに環境変数を格納
@@ -97,6 +103,6 @@ DB_PASS=<.tfstateのrandom_string.db_password.resultを入力>
 DB_HOST=<.tfstateのaws_db_instanceのaddressを転記>
 DB_NAME=golang
 DB_PORT=3306
-CACHE_HOST=<.tfstateのaws_db_instanceのaddressを転記>
-CACHE_PORT=11211
+CACHE_HOST1=<.tfstateのaws_db_instanceのaddressを転記>:11211
+CACHE_HOST2=<.tfstateのaws_db_instanceのaddressを転記>:11211
 ```
