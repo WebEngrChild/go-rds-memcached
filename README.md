@@ -92,6 +92,11 @@ mysql> <1_create.sqlの内容を転記>
 ### Systems Manager Parameterに環境変数を格納
 
 ```shell
+DB_USER=admin
 DB_PASS=<.tfstateのrandom_string.db_password.resultを入力>
 DB_HOST=<.tfstateのaws_db_instanceのaddressを転記>
+DB_NAME=golang
+DB_PORT=3306
+CACHE_HOST=<.tfstateのaws_db_instanceのaddressを転記>
+CACHE_PORT=11211
 ```
