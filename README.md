@@ -44,7 +44,7 @@ aws ssm put-parameter \
 # コンテナを立ち上げる
 docker run \
   -v ~/.aws:/root/.aws \
-  -v $(pwd):/terraform \
+  -v $(pwd)/.infrastructure:/terraform \
   -w /terraform \
   -it \
   --entrypoint=ash \
