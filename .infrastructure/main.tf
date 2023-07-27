@@ -2,8 +2,9 @@ provider "aws" {
   region = "ap-northeast-1"
 }
 
+# ------------------------------------------------------------#
 # VPC
-# https://www.terraform.io/docs/providers/aws/r/vpc.html
+# ------------------------------------------------------------#
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
 
@@ -12,8 +13,9 @@ resource "aws_vpc" "main" {
   }
 }
 
-# Subnet
-# https://www.terraform.io/docs/providers/aws/r/subnet.html
+# ------------------------------------------------------------#
+# Subnet Public
+# ------------------------------------------------------------#
 resource "aws_subnet" "public_1a" {
   # 先程作成したVPCを参照し、そのVPC内にSubnetを立てる
   vpc_id = aws_vpc.main.id
@@ -52,7 +54,9 @@ resource "aws_subnet" "public_1d" {
   }
 }
 
-# Private Subnets
+# ------------------------------------------------------------#
+# Subnets Private
+# ------------------------------------------------------------#
 resource "aws_subnet" "private_1a" {
   vpc_id = aws_vpc.main.id
 
@@ -86,8 +90,9 @@ resource "aws_subnet" "private_1d" {
   }
 }
 
+# ------------------------------------------------------------#
 # Internet Gateway
-# https://www.terraform.io/docs/providers/aws/r/internet_gateway.html
+# ------------------------------------------------------------#
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
@@ -96,8 +101,9 @@ resource "aws_internet_gateway" "main" {
   }
 }
 
+# ------------------------------------------------------------#
 # Elasti IP
-# https://www.terraform.io/docs/providers/aws/r/eip.html
+# ------------------------------------------------------------#
 resource "aws_eip" "nat_1a" {
   domain = "vpc"
 
@@ -122,8 +128,9 @@ resource "aws_eip" "nat_1d" {
   }
 }
 
+# ------------------------------------------------------------#
 # NAT Gateway
-# https://www.terraform.io/docs/providers/aws/r/nat_gateway.html
+# ------------------------------------------------------------#
 resource "aws_nat_gateway" "nat_1a" {
   subnet_id     = aws_subnet.public_1a.id # NAT Gatewayを配置するSubnetを指定
   allocation_id = aws_eip.nat_1a.id       # 紐付けるElasti IP
@@ -151,8 +158,9 @@ resource "aws_nat_gateway" "nat_1d" {
   }
 }
 
-# Route Table　 (Public)
-# https://www.terraform.io/docs/providers/aws/r/route_table.html
+# ------------------------------------------------------------#
+# Route Table Public
+# ------------------------------------------------------------#
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
@@ -161,16 +169,18 @@ resource "aws_route_table" "public" {
   }
 }
 
-# Route (Public)
-# https://www.terraform.io/docs/providers/aws/r/route.html
+# ------------------------------------------------------------#
+# Route Public
+# ------------------------------------------------------------#
 resource "aws_route" "public" {
   destination_cidr_block = "0.0.0.0/0"
   route_table_id         = aws_route_table.public.id
   gateway_id             = aws_internet_gateway.main.id
 }
 
-# Association (Public)
-# https://www.terraform.io/docs/providers/aws/r/route_table_association.html
+# ------------------------------------------------------------#
+# Association Public
+# ------------------------------------------------------------#
 resource "aws_route_table_association" "public_1a" {
   subnet_id      = aws_subnet.public_1a.id
   route_table_id = aws_route_table.public.id
@@ -186,8 +196,9 @@ resource "aws_route_table_association" "public_1d" {
   route_table_id = aws_route_table.public.id
 }
 
-# Route Table (Private)
-# https://www.terraform.io/docs/providers/aws/r/route_table.html
+# ------------------------------------------------------------#
+# Route Table Private
+# ------------------------------------------------------------#
 resource "aws_route_table" "private_1a" {
   vpc_id = aws_vpc.main.id
 
@@ -212,8 +223,9 @@ resource "aws_route_table" "private_1d" {
   }
 }
 
-# Route (Private)
-# https://www.terraform.io/docs/providers/aws/r/route.html
+# ------------------------------------------------------------#
+# Route Private
+# ------------------------------------------------------------#
 resource "aws_route" "private_1a" {
   destination_cidr_block = "0.0.0.0/0"
   route_table_id         = aws_route_table.private_1a.id
@@ -232,8 +244,9 @@ resource "aws_route" "private_1d" {
   nat_gateway_id         = aws_nat_gateway.nat_1d.id
 }
 
-# Association (Private)
-# https://www.terraform.io/docs/providers/aws/r/route_table_association.html
+# ------------------------------------------------------------#
+# Association Private
+# ------------------------------------------------------------#
 resource "aws_route_table_association" "private_1a" {
   subnet_id      = aws_subnet.private_1a.id
   route_table_id = aws_route_table.private_1a.id
@@ -249,8 +262,9 @@ resource "aws_route_table_association" "private_1d" {
   route_table_id = aws_route_table.private_1d.id
 }
 
-# SecurityGroup (ALB)
-# https://www.terraform.io/docs/providers/aws/r/security_group.html
+# ------------------------------------------------------------#
+# SecurityGroup ALB
+# ------------------------------------------------------------#
 resource "aws_security_group" "alb" {
   name        = "handson-alb"
   description = "handson alb"
@@ -261,8 +275,9 @@ resource "aws_security_group" "alb" {
   }
 }
 
+# ------------------------------------------------------------#
 # SecurityGroup Rule
-# https://www.terraform.io/docs/providers/aws/r/security_group.html
+# ------------------------------------------------------------#
 resource "aws_security_group_rule" "alb_egress" {
   security_group_id = aws_security_group.alb.id
 
@@ -283,8 +298,9 @@ resource "aws_security_group_rule" "alb_ingress" {
   cidr_blocks = ["0.0.0.0/0"]
 }
 
+# ------------------------------------------------------------#
 # ALB
-# https://www.terraform.io/docs/providers/aws/d/lb.html
+# ------------------------------------------------------------#
 resource "aws_lb" "main" {
   load_balancer_type = "application"
   name               = "handson"
@@ -293,8 +309,9 @@ resource "aws_lb" "main" {
   subnets         = [aws_subnet.public_1a.id, aws_subnet.public_1c.id, aws_subnet.public_1d.id]
 }
 
+# ------------------------------------------------------------#
 # ALB　Listener
-# https://www.terraform.io/docs/providers/aws/r/lb_listener.html
+# ------------------------------------------------------------#
 resource "aws_lb_listener" "main" {
   # HTTPでのアクセスを受け付ける
   port     = 80
@@ -315,8 +332,9 @@ resource "aws_lb_listener" "main" {
   }
 }
 
+# ------------------------------------------------------------#
 # Task Definition
-# https://www.terraform.io/docs/providers/aws/r/ecs_task_definition.html
+# ------------------------------------------------------------#
 resource "aws_ecs_task_definition" "main" {
   family = "handson"
 
@@ -375,14 +393,16 @@ EOL
   task_role_arn      = aws_iam_role.task_role.arn
 }
 
+# ------------------------------------------------------------#
 # ECS Cluster
-# https://www.terraform.io/docs/providers/aws/r/ecs_cluster.html
+# ------------------------------------------------------------#
 resource "aws_ecs_cluster" "main" {
   name = "handson"
 }
 
+# ------------------------------------------------------------#
 # ELB Target Group
-# https://www.terraform.io/docs/providers/aws/r/lb_target_group.html
+# ------------------------------------------------------------#
 resource "aws_lb_target_group" "main" {
   name = "handson"
 
@@ -402,8 +422,9 @@ resource "aws_lb_target_group" "main" {
   }
 }
 
+# ------------------------------------------------------------#
 # ALB Listener Rule
-# https://www.terraform.io/docs/providers/aws/r/lb_listener_rule.html
+# ------------------------------------------------------------#
 resource "aws_lb_listener_rule" "main" {
   # ルールを追加するリスナー
   listener_arn = aws_lb_listener.main.arn
@@ -422,9 +443,9 @@ resource "aws_lb_listener_rule" "main" {
   }
 }
 
-
+# ------------------------------------------------------------#
 # ECS SecurityGroup
-# https://www.terraform.io/docs/providers/aws/r/security_group.html
+# ------------------------------------------------------------#
 resource "aws_security_group" "ecs" {
   name        = "handson-ecs"
   description = "handson ecs"
@@ -437,7 +458,9 @@ resource "aws_security_group" "ecs" {
   }
 }
 
+# ------------------------------------------------------------#
 # ECS Security Group Egress rule
+# ------------------------------------------------------------#
 resource "aws_security_group_rule" "ecs_egress" {
   security_group_id = aws_security_group.ecs.id
   type              = "egress"
@@ -448,8 +471,9 @@ resource "aws_security_group_rule" "ecs_egress" {
   cidr_blocks = ["0.0.0.0/0"]
 }
 
+# ------------------------------------------------------------#
 # ECS Security Group Ingress rule
-# https://www.terraform.io/docs/providers/aws/r/security_group.html
+# ------------------------------------------------------------#
 resource "aws_security_group_rule" "ecs_ingress" {
   security_group_id = aws_security_group.ecs.id
   type              = "ingress"
@@ -463,8 +487,9 @@ resource "aws_security_group_rule" "ecs_ingress" {
   cidr_blocks = ["10.0.0.0/16"]
 }
 
+# ------------------------------------------------------------#
 # ECS Service
-# https://www.terraform.io/docs/providers/aws/r/ecs_service.html
+# ------------------------------------------------------------#
 resource "aws_ecs_service" "main" {
   name = "handson"
 
@@ -499,7 +524,9 @@ resource "aws_ecs_service" "main" {
   }
 }
 
-# タスク実行ロール
+# ------------------------------------------------------------#
+# Task Execution Role
+# ------------------------------------------------------------#
 resource "aws_iam_role" "ecs_task_execution_role" {
   name = "ecs_task_execution_role"
 
@@ -520,7 +547,9 @@ resource "aws_iam_role" "ecs_task_execution_role" {
 EOF
 }
 
-# タスク実行ポリシー
+# ------------------------------------------------------------#
+# Association Private
+# ------------------------------------------------------------#
 resource "aws_iam_policy" "ecs_task_execution_policy" {
   name        = "ecs_task_execution_policy"
   path        = "/"
@@ -552,13 +581,17 @@ resource "aws_iam_policy" "ecs_task_execution_policy" {
 EOF
 }
 
-# IAMロールにポリシーをアタッチ
+# ------------------------------------------------------------#
+# Task Policy Attachment
+# ------------------------------------------------------------#
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy_attach" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = aws_iam_policy.ecs_task_execution_policy.arn
 }
 
-# タスクロール
+# ------------------------------------------------------------#
+# Task Role
+# ------------------------------------------------------------#
 resource "aws_iam_role" "task_role" {
   name = "task_role"
 
@@ -579,7 +612,9 @@ resource "aws_iam_role" "task_role" {
 EOF
 }
 
-# タスクロールにSSMパラメータストアへのアクセスを許可するポリシーをアタッチ
+# ------------------------------------------------------------#
+# SSM parameter store policy
+# ------------------------------------------------------------#
 resource "aws_iam_policy" "ssm_parameter_store_policy" {
   name        = "ssm_parameter_store_policy"
   description = "Allow access to SSM Parameter Store"
@@ -598,19 +633,17 @@ resource "aws_iam_policy" "ssm_parameter_store_policy" {
 EOF
 }
 
-# タスクロールにポリシーをアタッチ
+# ------------------------------------------------------------#
+# SSM parameter store policy attachment
+# ------------------------------------------------------------#
 resource "aws_iam_role_policy_attachment" "ssm_policy_attach" {
   role       = aws_iam_role.task_role.name
   policy_arn = aws_iam_policy.ssm_parameter_store_policy.arn
 }
 
-# # ECRリポジトリの作成
-# # https://www.terraform.io/docs/providers/aws/r/ecr_repository.html
-# resource "aws_ecr_repository" "repository" {
-#   name = "go-dev-repo"
-# }
-
+# ------------------------------------------------------------#
 # CloudWatch Logs Group
+# ------------------------------------------------------------#
 resource "aws_cloudwatch_log_group" "ecs_logs" {
   name              = "/ecs/handson"
   retention_in_days = 14
