@@ -1,8 +1,8 @@
 # ------------------------------------------------------------#
 # RDS parameter group
 # ------------------------------------------------------------#
-resource "aws_db_parameter_group" "handson" {
-  name   = "mysql-parameter-group"
+resource "aws_db_parameter_group" "main" {
+  name   = var.project
   family = "mysql8.0"
 
   parameter {
@@ -16,36 +16,36 @@ resource "aws_db_parameter_group" "handson" {
   }
 
   tags = {
-    Name = "aws_db_parameter_group"
+    Name = format("%s-%s-aws-db-parameter-group", var.environment, var.project)
   }
 }
 
 # ------------------------------------------------------------#
 # RDS option group
 # ------------------------------------------------------------#
-resource "aws_db_option_group" "handson" {
-  name                     = "handson"
-  option_group_description = "handson option group"
+resource "aws_db_option_group" "main" {
+  name                     = var.project
+  option_group_description = var.project
   engine_name              = "mysql"
   major_engine_version     = "8.0"
 
   tags = {
-    Name = "aws_db_option_group"
+    Name = format("%s-%s-aws-db-option-group", var.environment, var.project)
   }
 }
 
 # ------------------------------------------------------------#
 # RDS subnet group
 # ------------------------------------------------------------#
-resource "aws_db_subnet_group" "handson" {
-  name = "handson"
+resource "aws_db_subnet_group" "main" {
+  name = var.project
   subnet_ids = [
-    aws_subnet.private_1c.id,
-    aws_subnet.private_1d.id
+    aws_subnet.private["1c"].id,
+    aws_subnet.private["1d"].id,
   ]
 
   tags = {
-    Name = "aws_db_subnet_group"
+    Name = format("%s-%s-aws-db-subnet-group", var.environment, var.project)
   }
 }
 
@@ -53,12 +53,12 @@ resource "aws_db_subnet_group" "handson" {
 # RDS Security Group
 # ------------------------------------------------------------#
 resource "aws_security_group" "rds" {
-  name        = "rds_security_group"
+  name        = format("%s-%s-aws-security-group-rds", var.environment, var.project)
   description = "Allow inbound traffic on port 3306"
   vpc_id      = aws_vpc.main.id
 
   tags = {
-    Name = "aws_security_group"
+    Name = format("%s-%s-aws-security-group", var.environment, var.project)
   }
 }
 
@@ -80,7 +80,6 @@ resource "aws_security_group_rule" "allow_ec2_mysql" {
   source_security_group_id = aws_security_group.ssm.id
 }
 
-
 # ------------------------------------------------------------#
 # RDS Instance
 # ------------------------------------------------------------#
@@ -89,11 +88,11 @@ resource "random_string" "db_password" {
   special = false
 }
 
-resource "aws_db_instance" "handson" {
+resource "aws_db_instance" "main" {
   engine         = "mysql"
   engine_version = "8.0"
 
-  identifier = "handson"
+  identifier = var.project
 
   username = "admin"
   password = random_string.db_password.result
@@ -108,32 +107,31 @@ resource "aws_db_instance" "handson" {
 
   multi_az               = false
   availability_zone      = "ap-northeast-1d"
-  db_subnet_group_name   = aws_db_subnet_group.handson.name
+  db_subnet_group_name   = aws_db_subnet_group.main.name
   vpc_security_group_ids = [aws_security_group.rds.id]
   publicly_accessible    = false
   port                   = 3306
 
-  parameter_group_name = aws_db_parameter_group.handson.name
-  option_group_name    = aws_db_option_group.handson.name
+  parameter_group_name = aws_db_parameter_group.main.name
+  option_group_name    = aws_db_option_group.main.name
 
   apply_immediately = true
 
   tags = {
-    Name = "aws_db_instance"
+    Name = format("%s-%s-aws-db-instance", var.environment, var.project)
   }
 }
-
 
 # ------------------------------------------------------------#
 # Bastion EC2
 # ------------------------------------------------------------#
 resource "aws_security_group" "ssm" {
-  name        = "ssm_security_group"
+  name        = format("%s-%s-aws-security-group-ssm", var.environment, var.project)
   description = "Security Group for SSM EC2 Instance"
   vpc_id      = aws_vpc.main.id
 
   tags = {
-    Name = "aws_security_group_ssm"
+    Name = format("%s-%s-aws-security-group-ssm", var.environment, var.project)
   }
 }
 
@@ -165,7 +163,7 @@ resource "aws_security_group_rule" "ssm_ingress_mysql" {
 }
 
 resource "aws_iam_role" "rds_access" {
-  name = "RDSAccessRole"
+  name = format("%s-%s-aws_iam_role-rds_access", var.environment, var.project)
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -213,7 +211,7 @@ resource "aws_instance" "ssm" {
   ami                         = "ami-0947c48ae0aaf6781"
   instance_type               = "t2.micro"
   iam_instance_profile        = aws_iam_instance_profile.rds_access.name
-  subnet_id                   = aws_subnet.public_1d.id
+  subnet_id                   = aws_subnet.public["1d"].id
   vpc_security_group_ids      = [aws_security_group.ssm.id]
   associate_public_ip_address = true
   key_name                    = "access_db"
@@ -224,6 +222,39 @@ resource "aws_instance" "ssm" {
             EOF
 
   tags = {
-    Name = "SSM EC2 Instance"
+    Name = format("%s-%s-aws-ssm-ec2-instance", var.environment, var.project)
   }
+}
+
+# ------------------------------------------------------------#
+# OutPut
+# ------------------------------------------------------------#
+output "DB_USER" {
+  value       = "admin"
+  description = "Database username"
+}
+
+output "DB_PASS" {
+  value       = random_string.db_password.result
+  description = "Database password"
+}
+
+output "DB_HOST" {
+  value       = aws_db_instance.main.address
+  description = "Database endpoint"
+}
+
+output "DB_NAME" {
+  value       = "golang"
+  description = "Database name"
+}
+
+output "DB_PORT" {
+  value       = aws_db_instance.main.port
+  description = "Database port"
+}
+
+output "bastion_ec2_id" {
+  value       = aws_instance.ssm.id
+  description = "bastion ec2 id"
 }

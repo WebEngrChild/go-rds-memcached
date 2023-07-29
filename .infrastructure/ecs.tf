@@ -3,10 +3,10 @@
 # ------------------------------------------------------------#
 resource "aws_lb" "main" {
   load_balancer_type = "application"
-  name               = "handson"
+  name               = var.project
 
   security_groups = [aws_security_group.alb.id]
-  subnets         = [aws_subnet.public_1a.id, aws_subnet.public_1c.id, aws_subnet.public_1d.id]
+  subnets         = values(aws_subnet.public)[*].id
 }
 
 # ------------------------------------------------------------#
@@ -32,7 +32,7 @@ resource "aws_lb_listener" "main" {
 # Task Definition
 # ------------------------------------------------------------#
 resource "aws_ecs_task_definition" "main" {
-  family                   = "handson"
+  family                   = var.project
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
   memory                   = "512"
@@ -41,7 +41,7 @@ resource "aws_ecs_task_definition" "main" {
 [
   {
     "name": "go",
-    "image": "543494928176.dkr.ecr.ap-northeast-1.amazonaws.com/go-dev-repo:latest",
+    "image": "${data.aws_ecr_repository.existing.repository_url}:latest",
     "portMappings": [
       {
         "containerPort": 8080,
@@ -51,7 +51,7 @@ resource "aws_ecs_task_definition" "main" {
     "secrets": [
       {
         "name": "ENV_FILE",
-        "valueFrom": "arn:aws:ssm:ap-northeast-1:543494928176:parameter/env"
+        "valueFrom": "${data.aws_ssm_parameter.existing.arn}"
       }
     ],
     "command": ["/bin/sh", "-c", "printenv ENV_FILE > .env && ./main"],
@@ -82,14 +82,14 @@ EOL
 # ECS Cluster
 # ------------------------------------------------------------#
 resource "aws_ecs_cluster" "main" {
-  name = "handson"
+  name = var.project
 }
 
 # ------------------------------------------------------------#
 # ELB Target Group
 # ------------------------------------------------------------#
 resource "aws_lb_target_group" "main" {
-  name        = "handson"
+  name        = var.project
   vpc_id      = aws_vpc.main.id
   port        = 8080
   protocol    = "HTTP"
@@ -124,12 +124,12 @@ resource "aws_lb_listener_rule" "main" {
 # ECS SecurityGroup
 # ------------------------------------------------------------#
 resource "aws_security_group" "ecs" {
-  name        = "handson-ecs"
-  description = "handson ecs"
+  name        = format("%s-ecs", var.project)
+  description = format("%s-ecs", var.project)
   vpc_id      = aws_vpc.main.id
 
   tags = {
-    Name = "handson-ecs"
+    Name = format("%s-ecs", var.project)
   }
 }
 
@@ -162,7 +162,7 @@ resource "aws_security_group_rule" "ecs_ingress" {
 # ECS Service
 # ------------------------------------------------------------#
 resource "aws_ecs_service" "main" {
-  name            = "handson"
+  name            = var.project
   depends_on      = [aws_lb_listener_rule.main]
   cluster         = aws_ecs_cluster.main.name
   launch_type     = "FARGATE"
@@ -170,7 +170,7 @@ resource "aws_ecs_service" "main" {
   task_definition = aws_ecs_task_definition.main.arn
 
   network_configuration {
-    subnets         = [aws_subnet.private_1a.id, aws_subnet.private_1c.id, aws_subnet.private_1d.id]
+    subnets         = values(aws_subnet.private)[*].id
     security_groups = [aws_security_group.ecs.id]
   }
 
@@ -185,7 +185,7 @@ resource "aws_ecs_service" "main" {
 # Task Execution Role
 # ------------------------------------------------------------#
 resource "aws_iam_role" "ecs_task_execution_role" {
-  name = "ecs_task_execution_role"
+  name = format("%s-%s-ecs_task_execution_role", var.environment, var.project)
 
   assume_role_policy = <<EOF
 {
@@ -208,9 +208,9 @@ EOF
 # Association Private
 # ------------------------------------------------------------#
 resource "aws_iam_policy" "ecs_task_execution_policy" {
-  name        = "ecs_task_execution_policy"
+  name        = format("%s-%s-ecs_task_execution_policy", var.environment, var.project)
   path        = "/"
-  description = "ECS task execution policy"
+  description = format("%s-ecs-task-execution-policy", var.project)
 
   policy = <<EOF
 {
@@ -250,7 +250,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy_attach
 # Task Role
 # ------------------------------------------------------------#
 resource "aws_iam_role" "task_role" {
-  name = "task_role"
+  name = var.project
 
   assume_role_policy = <<EOF
 {
@@ -273,7 +273,7 @@ EOF
 # SSM parameter store policy
 # ------------------------------------------------------------#
 resource "aws_iam_policy" "ssm_parameter_store_policy" {
-  name        = "ssm_parameter_store_policy"
+  name        = var.project
   description = "Allow access to SSM Parameter Store"
 
   policy = <<EOF
@@ -304,4 +304,12 @@ resource "aws_iam_role_policy_attachment" "ssm_policy_attach" {
 resource "aws_cloudwatch_log_group" "ecs_logs" {
   name              = "/ecs/handson"
   retention_in_days = 14
+}
+
+# ------------------------------------------------------------#
+# OutPut
+# ------------------------------------------------------------#
+output "alb_dns" {
+  value       = aws_lb.main.dns_name
+  description = "DNS name"
 }

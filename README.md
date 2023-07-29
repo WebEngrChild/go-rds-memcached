@@ -20,13 +20,16 @@ ab -n 10 -c 10 http://localhost:8080/cache/1
 # ECR作成
 aws ecr create-repository --repository-name go-dev-repo
 
+# ログイン
+aws ecr get-login-password --region ap-northeast-1 | docker login --username AWS --password-stdin <account_id>.dkr.ecr.ap-northeast-1.amazonaws.com
+
 # イメージビルド
 docker build --no-cache --target runner -t go-dev-repo --platform linux/amd64 -f ./.docker/go/Dockerfile .
 
 # タグ付け
 docker tag go-dev-repo:latest <account_id>.dkr.ecr.ap-northeast-1.amazonaws.com/go-dev-repo:latest
 
-# タグ付け
+# プッシュ
 docker push <account_id>.dkr.ecr.ap-northeast-1.amazonaws.com/go-dev-repo:latest
 ```
 

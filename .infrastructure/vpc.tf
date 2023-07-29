@@ -1,88 +1,50 @@
 # ------------------------------------------------------------#
+# local variables
+# ------------------------------------------------------------#
+locals {
+  zones         = ["1a", "1c", "1d"]
+  public_cidrs  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  private_cidrs = ["10.0.10.0/24", "10.0.20.0/24", "10.0.30.0/24"]
+}
+
+# ------------------------------------------------------------#
 # VPC
 # ------------------------------------------------------------#
 resource "aws_vpc" "main" {
   cidr_block = "10.0.0.0/16"
 
   tags = {
-    Name = "handson"
+    Name = format("%s-%s-aws_vpc", var.environment, var.project)
   }
 }
 
 # ------------------------------------------------------------#
 # Subnet Public
 # ------------------------------------------------------------#
-resource "aws_subnet" "public_1a" {
-  # 先程作成したVPCを参照し、そのVPC内にSubnetを立てる
-  vpc_id = aws_vpc.main.id
+resource "aws_subnet" "public" {
+  for_each = toset(local.zones)
 
-  # Subnetを作成するAZ
-  availability_zone = "ap-northeast-1a"
-
-  cidr_block = "10.0.1.0/24"
+  vpc_id            = aws_vpc.main.id
+  availability_zone = "ap-northeast-${each.value}"
+  cidr_block        = local.public_cidrs[index(local.zones, each.value)]
 
   tags = {
-    Name = "handson-public-1a"
-  }
-}
-
-resource "aws_subnet" "public_1c" {
-  vpc_id = aws_vpc.main.id
-
-  availability_zone = "ap-northeast-1c"
-
-  cidr_block = "10.0.2.0/24"
-
-  tags = {
-    Name = "handson-public-1c"
-  }
-}
-
-resource "aws_subnet" "public_1d" {
-  vpc_id = aws_vpc.main.id
-
-  availability_zone = "ap-northeast-1d"
-
-  cidr_block = "10.0.3.0/24"
-
-  tags = {
-    Name = "handson-public-1d"
+    Name = format("%s-%s-public-%s", var.environment, var.project, each.value)
   }
 }
 
 # ------------------------------------------------------------#
 # Subnets Private
 # ------------------------------------------------------------#
-resource "aws_subnet" "private_1a" {
-  vpc_id = aws_vpc.main.id
+resource "aws_subnet" "private" {
+  for_each = toset(local.zones)
 
-  availability_zone = "ap-northeast-1a"
-  cidr_block        = "10.0.10.0/24"
-
-  tags = {
-    Name = "handson-private-1a"
-  }
-}
-
-resource "aws_subnet" "private_1c" {
-  vpc_id = aws_vpc.main.id
-
-  availability_zone = "ap-northeast-1c"
-  cidr_block        = "10.0.20.0/24"
+  vpc_id            = aws_vpc.main.id
+  availability_zone = "ap-northeast-${each.value}"
+  cidr_block        = local.private_cidrs[index(local.zones, each.value)]
 
   tags = {
-    Name = "handson-private-1c"
-  }
-}
-
-resource "aws_subnet" "private_1d" {
-  vpc_id = aws_vpc.main.id
-
-  availability_zone = "ap-northeast-1d"
-  cidr_block        = "10.0.30.0/24"
-
-  tags = {
-    Name = "handson-private-1d"
+    Name = format("%s-%s-private-%s", var.environment, var.project, each.value)
   }
 }
 
@@ -93,64 +55,34 @@ resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "handson"
+    Name = format("%s-%s-aws_internet_gateway", var.environment, var.project)
   }
 }
 
 # ------------------------------------------------------------#
 # Elastic IP
 # ------------------------------------------------------------#
-resource "aws_eip" "nat_1a" {
+resource "aws_eip" "nat" {
+  for_each = toset(local.zones)
+
   domain = "vpc"
 
   tags = {
-    Name = "handson-natgw-1a"
-  }
-}
-
-resource "aws_eip" "nat_1c" {
-  domain = "vpc"
-
-  tags = {
-    Name = "handson-natgw-1c"
-  }
-}
-
-resource "aws_eip" "nat_1d" {
-  domain = "vpc"
-
-  tags = {
-    Name = "handson-natgw-1d"
+    Name = format("%s-%s-aws_eip-nat_%s", var.environment, var.project, each.value)
   }
 }
 
 # ------------------------------------------------------------#
 # NAT Gateway
 # ------------------------------------------------------------#
-resource "aws_nat_gateway" "nat_1a" {
-  subnet_id     = aws_subnet.public_1a.id # NAT Gatewayを配置するSubnetを指定
-  allocation_id = aws_eip.nat_1a.id       # 紐付けるElasti IP
+resource "aws_nat_gateway" "nat" {
+  for_each = toset(local.zones)
+
+  subnet_id     = aws_subnet.public[each.value].id
+  allocation_id = aws_eip.nat[each.value].id
 
   tags = {
-    Name = "handson-1a"
-  }
-}
-
-resource "aws_nat_gateway" "nat_1c" {
-  subnet_id     = aws_subnet.public_1c.id
-  allocation_id = aws_eip.nat_1c.id
-
-  tags = {
-    Name = "handson-1c"
-  }
-}
-
-resource "aws_nat_gateway" "nat_1d" {
-  subnet_id     = aws_subnet.public_1d.id
-  allocation_id = aws_eip.nat_1d.id
-
-  tags = {
-    Name = "handson-1d"
+    Name = format("%s-%s-nat_%s", var.environment, var.project, each.value)
   }
 }
 
@@ -161,7 +93,7 @@ resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "handson-public"
+    Name = format("%s-%s-aws_route_table-public", var.environment, var.project)
   }
 }
 
@@ -177,97 +109,57 @@ resource "aws_route" "public" {
 # ------------------------------------------------------------#
 # Association Public
 # ------------------------------------------------------------#
-resource "aws_route_table_association" "public_1a" {
-  subnet_id      = aws_subnet.public_1a.id
-  route_table_id = aws_route_table.public.id
-}
+resource "aws_route_table_association" "public" {
+  for_each = toset(local.zones)
 
-resource "aws_route_table_association" "public_1c" {
-  subnet_id      = aws_subnet.public_1c.id
-  route_table_id = aws_route_table.public.id
-}
-
-resource "aws_route_table_association" "public_1d" {
-  subnet_id      = aws_subnet.public_1d.id
+  subnet_id      = aws_subnet.public[each.value].id
   route_table_id = aws_route_table.public.id
 }
 
 # ------------------------------------------------------------#
 # Route Table Private
 # ------------------------------------------------------------#
-resource "aws_route_table" "private_1a" {
+resource "aws_route_table" "private" {
+  for_each = toset(local.zones)
+
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "handson-private-1a"
-  }
-}
-
-resource "aws_route_table" "private_1c" {
-  vpc_id = aws_vpc.main.id
-
-  tags = {
-    Name = "handson-private-1c"
-  }
-}
-
-resource "aws_route_table" "private_1d" {
-  vpc_id = aws_vpc.main.id
-
-  tags = {
-    Name = "handson-private-1d"
+    Name = format("%s-%s-private_%s", var.environment, var.project, each.value)
   }
 }
 
 # ------------------------------------------------------------#
 # Route Private
 # ------------------------------------------------------------#
-resource "aws_route" "private_1a" {
-  destination_cidr_block = "0.0.0.0/0"
-  route_table_id         = aws_route_table.private_1a.id
-  nat_gateway_id         = aws_nat_gateway.nat_1a.id
-}
+resource "aws_route" "private" {
+  for_each = toset(local.zones)
 
-resource "aws_route" "private_1c" {
   destination_cidr_block = "0.0.0.0/0"
-  route_table_id         = aws_route_table.private_1c.id
-  nat_gateway_id         = aws_nat_gateway.nat_1c.id
-}
-
-resource "aws_route" "private_1d" {
-  destination_cidr_block = "0.0.0.0/0"
-  route_table_id         = aws_route_table.private_1d.id
-  nat_gateway_id         = aws_nat_gateway.nat_1d.id
+  route_table_id         = aws_route_table.private[each.value].id
+  nat_gateway_id         = aws_nat_gateway.nat[each.value].id
 }
 
 # ------------------------------------------------------------#
 # Association Private
 # ------------------------------------------------------------#
-resource "aws_route_table_association" "private_1a" {
-  subnet_id      = aws_subnet.private_1a.id
-  route_table_id = aws_route_table.private_1a.id
-}
+resource "aws_route_table_association" "private" {
+  for_each = toset(local.zones)
 
-resource "aws_route_table_association" "private_1c" {
-  subnet_id      = aws_subnet.private_1c.id
-  route_table_id = aws_route_table.private_1c.id
-}
-
-resource "aws_route_table_association" "private_1d" {
-  subnet_id      = aws_subnet.private_1d.id
-  route_table_id = aws_route_table.private_1d.id
+  subnet_id      = aws_subnet.private[each.value].id
+  route_table_id = aws_route_table.private[each.value].id
 }
 
 # ------------------------------------------------------------#
 # SecurityGroup ALB
 # ------------------------------------------------------------#
 resource "aws_security_group" "alb" {
-  name        = "handson-alb"
-  description = "handson alb"
+  name        = var.project
+  description = var.project
   vpc_id      = aws_vpc.main.id
 
   tags = {
-    Name = "handson-alb"
+    Name = format("%s-%s-aws_security_group-alb", var.environment, var.project)
   }
 }
 

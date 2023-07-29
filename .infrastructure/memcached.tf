@@ -2,12 +2,12 @@
 # Memcached Security Group
 # ------------------------------------------------------------#
 resource "aws_security_group" "memcached" {
-  name        = "memcached_security_group"
+  name        = format("%s-%s-aws-security-group", var.environment, var.project)
   description = "Allow inbound traffic on port 11211"
   vpc_id      = aws_vpc.main.id
 
   tags = {
-    Name = "aws_security_group"
+    Name = format("%s-%s-aws-security-group", var.environment, var.project)
   }
 }
 
@@ -24,10 +24,10 @@ resource "aws_security_group_rule" "memcached" {
 # Memcached subnet group
 # ------------------------------------------------------------#
 resource "aws_elasticache_subnet_group" "memcached" {
-  name = "memcached-subnet-group"
+  name = format("%s-%s-memcached-subnet-group", var.environment, var.project)
   subnet_ids = [
-    aws_subnet.private_1c.id,
-    aws_subnet.private_1d.id
+    aws_subnet.private["1c"].id,
+    aws_subnet.private["1d"].id,
   ]
 }
 
@@ -42,4 +42,17 @@ resource "aws_elasticache_cluster" "memcached" {
   parameter_group_name = "default.memcached1.6"
   subnet_group_name    = aws_elasticache_subnet_group.memcached.name
   security_group_ids   = [aws_security_group.memcached.id]
+}
+
+# ------------------------------------------------------------#
+# OutPut
+# ------------------------------------------------------------#
+output "CACHE_HOST1" {
+  value       = "${aws_elasticache_cluster.memcached.cache_nodes.0.address}:11211"
+  description = "Cache cluster node 1 endpoint"
+}
+
+output "CACHE_HOST2" {
+  value       = "${aws_elasticache_cluster.memcached.cache_nodes.1.address}:11211"
+  description = "Cache cluster node 2 endpoint"
 }
