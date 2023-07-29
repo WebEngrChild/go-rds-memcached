@@ -102,11 +102,12 @@ mysql> <.docker/mysql/init/1_create.sqlの内容を転記>
 ### Systems Manager Parameterに環境変数を格納
 
 ```shell
+# terraformコマンドで実行後に出力される内容を転記
 DB_USER=admin
-DB_PASS=<.tfstateのrandom_string.db_password.resultを入力>
-DB_HOST=<.tfstateのaws_db_instanceのaddressを転記>
+DB_PASS=xxxxxxx
+DB_HOST=go-api.xxxxxxx.ap-northeast-1.rds.amazonaws.com
 DB_NAME=golang
 DB_PORT=3306
-CACHE_HOST1=<.tfstateのaws_db_instanceのaddressを転記>:11211
-CACHE_HOST2=<.tfstateのaws_db_instanceのaddressを転記>:11211
+CACHE_HOST1=go-api-dev-memcached-cluster.xxxxxxx.0001.apne1.cache.amazonaws.com:11211
+CACHE_HOST2=go-api-dev-memcached-cluster.xxxxxxx.0002.apne1.cache.amazonaws.com:11211
 ```

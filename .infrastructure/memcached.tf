@@ -35,7 +35,7 @@ resource "aws_elasticache_subnet_group" "memcached" {
 # Memcached cluster
 # ------------------------------------------------------------#
 resource "aws_elasticache_cluster" "memcached" {
-  cluster_id           = "memcached-cluster-202307"
+  cluster_id           = format("%s-%s-memcached-cluster", var.environment, var.project)
   engine               = "memcached"
   node_type            = "cache.t3.micro"
   num_cache_nodes      = 2
