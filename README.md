@@ -75,11 +75,11 @@ terraform destroy
 ```shell
 # セッション開始
 aws ssm start-session \
-  --target "<terraformコマンドで実行後に出力される内容を転記>" \
+  --target "<terraformコマンドで実行後に出力されるbastion_ec2_idを転記>" \
   --document-name AWS-StartPortForwardingSessionToRemoteHost \
   --parameters \
 '{
-  "host": ["<terraformコマンドで実行後に出力される内容を転記>"],
+  "host": ["<terraformコマンドで実行後に出力されるDB_HOSTを転記>"],
   "portNumber": ["3306"],
   "localPortNumber":["3306"]
 }'
@@ -93,7 +93,7 @@ docker run --name mysql-client --rm -it mysql:8.0 /bin/bash
 mysql -h host.docker.internal -P 3306 -u admin -p
 
 # パスワード入力
-Enter password: <terraformコマンドで実行後に出力される内容を転記>
+Enter password: <terraformコマンドで実行後に出力されるDB_PASSを転記>
 
 # 初期クエリ
 mysql> <.docker/mysql/init/1_create.sqlの内容を転記>
@@ -110,4 +110,16 @@ DB_NAME=golang
 DB_PORT=3306
 CACHE_HOST1=go-api-dev-memcached-cluster.xxxxxxx.0001.apne1.cache.amazonaws.com:11211
 CACHE_HOST2=go-api-dev-memcached-cluster.xxxxxxx.0002.apne1.cache.amazonaws.com:11211
+```
+
+### デプロイ
+
+```shell
+# デプロイ
+aws ecs update-service --cluster go-api --service go-api --task-definition go-api --force-new-deployment
+
+# ステータス確認
+aws ecs describe-services --cluster go-api --services go-api --query 'services[*].status' --output text
+
+> ACTIVE"
 ```
