@@ -11,5 +11,5 @@ variable "environment" {
 variable "cidr_blocks" {
   description = "List of CIDR blocks"
   type        = list(string)
-  default     = ["106.72.179.162/32"]
+  default     = ["<ご自身のグローバルIPを設定してください>/32"]
 }
