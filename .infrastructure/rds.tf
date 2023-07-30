@@ -99,7 +99,7 @@ resource "aws_db_instance" "main" {
 
   skip_final_snapshot = true
 
-  instance_class = "db.t2.micro"
+  instance_class = "db.t3.medium"
 
   storage_type      = "gp2"
   allocated_storage = 20
@@ -151,7 +151,7 @@ resource "aws_security_group_rule" "ssm_ingress_ssh" {
   from_port         = 22
   to_port           = 22
   protocol          = "tcp"
-  cidr_blocks       = ["106.72.179.162/32"]
+  cidr_blocks       = var.cidr_blocks
   security_group_id = aws_security_group.ssm.id
 }
 
@@ -160,7 +160,7 @@ resource "aws_security_group_rule" "ssm_ingress_mysql" {
   from_port         = 3306
   to_port           = 3306
   protocol          = "tcp"
-  cidr_blocks       = ["106.72.179.162/32"]
+  cidr_blocks       = var.cidr_blocks
   security_group_id = aws_security_group.ssm.id
 }
 
