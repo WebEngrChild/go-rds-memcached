@@ -117,6 +117,8 @@ resource "aws_db_instance" "main" {
 
   apply_immediately = true
 
+  performance_insights_enabled = true
+
   tags = {
     Name = format("%s-%s-aws-db-instance", var.environment, var.project)
   }
