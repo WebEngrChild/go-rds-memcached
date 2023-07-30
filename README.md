@@ -121,5 +121,5 @@ aws ecs update-service --cluster go-api --service go-api --task-definition go-ap
 # ステータス確認
 aws ecs describe-services --cluster go-api --services go-api --query 'services[*].status' --output text
 
-> ACTIVE"
+> ACTIVE
 ```
