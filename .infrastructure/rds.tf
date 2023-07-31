@@ -210,7 +210,7 @@ resource "aws_iam_instance_profile" "rds_access" {
 }
 
 resource "aws_instance" "ssm" {
-  ami                         = "ami-0947c48ae0aaf6781"
+  ami                         = data.aws_ssm_parameter.ami.value
   instance_type               = "t2.micro"
   iam_instance_profile        = aws_iam_instance_profile.rds_access.name
   subnet_id                   = aws_subnet.public["1d"].id
