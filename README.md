@@ -83,10 +83,13 @@ aws ssm start-session \
   "portNumber": ["3306"],
   "localPortNumber":["3306"]
 }'
+
+# 以下が表示されたらタブは開いたままにする
+> Waiting for connections...
 ```
 
 ```shell
-# Docker起動
+# 別タブでDocker起動
 docker run --name mysql-client --rm -it mysql:8.0 /bin/bash
 
 # MySQLクライアントで接続
